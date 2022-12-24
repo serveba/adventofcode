@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	aoc2015.Day1()
+	aoc2015.Day2()
 }
