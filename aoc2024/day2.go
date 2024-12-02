@@ -1,74 +1,78 @@
 package aoc2024
 
 import (
-	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 )
 
-// day 2
-// https://adventofcode.com/2015/day/2
-// --- Day 2: I Was Told There Would Be No Math ---
-
-func processSquareFeet(present string) (int, int) {
-	dimension := strings.Split(present, "x")
-
-	l, err := strconv.Atoi(dimension[0])
-	if err != nil {
-		log.Fatal(err)
+// day 1
+// https://adventofcode.com/2024/day/2
+// Red-Nosed Reports
+func processReports(fileContent string) int {
+	safeReports := 0
+	lines := strings.Split(fileContent, "\n")
+	for _, line := range lines {
+		levels := strings.Split(line, " ")
+		safety := processReport(levels)
+		safeReports += safety
+		// fmt.Printf("Levels: %v, Safety: %d\n", levels, safety)
 	}
-	w, err := strconv.Atoi(dimension[1])
-	if err != nil {
-		log.Fatal(err)
-	}
-	h, err := strconv.Atoi(dimension[2])
-	if err != nil {
-		log.Fatal(err)
-	}
+	return safeReports
+}
 
-	min := l * w
+func isDiffCorrect(diff int) bool {
+	return diff >= 1 && diff <= 3
+}
 
-	if w*h < min {
-		min = w * h
-	}
+func processReport(levels []string) int {
+	const safeLevel = 1
+	const unsafeLevel = 0
 
-	if h*l < min {
-		min = h * l
+	if len(levels) <= 2 {
+		return safeLevel
 	}
 
-	surfaceArea := 2*l*w + 2*w*h + 2*h*l + min
-	// LxWxH
-	ribbon := l + l + w + w + l*w*h
+	previousLevel, _ := strconv.Atoi(levels[0])
+	currentLevel, _ := strconv.Atoi(levels[1])
 
-	return surfaceArea, ribbon
+	diff := int(math.Abs(float64(currentLevel - previousLevel)))
+	if !isDiffCorrect(diff) {
+		return unsafeLevel
+	}
+
+	isIncreasing := false
+	if previousLevel < currentLevel {
+		isIncreasing = true
+	}
+
+	previousLevel = currentLevel
+
+	for i := 2; i < len(levels); i++ {
+		currentLevel, _ = strconv.Atoi(levels[i])
+		diff = currentLevel - previousLevel
+		if isIncreasing && diff < 0 || !isIncreasing && diff > 0 {
+			return unsafeLevel
+		}
+		unsignedDiff := int(math.Abs(float64(diff)))
+		if !isDiffCorrect(unsignedDiff) {
+			return unsafeLevel
+		}
+		previousLevel = currentLevel
+	}
+
+	return safeLevel
 }
 
 func Day2() {
-	// line by line
-	readFile, err := os.Open("aoc2015/day2.input.txt")
-
+	byteArray, err := os.ReadFile("aoc2024/day2.input.txt")
 	if err != nil {
-		fmt.Println(err)
-	}
-	fileScanner := bufio.NewScanner(readFile)
-
-	fileScanner.Split(bufio.ScanLines)
-
-	totalSquareFeet := 0
-	totalRibbon := 0
-
-	for fileScanner.Scan() {
-		input := strings.TrimSpace(fileScanner.Text())
-
-		squareFeet, ribbon := processSquareFeet(input)
-		totalSquareFeet += squareFeet
-		totalRibbon += ribbon
+		log.Fatal(err)
 	}
 
-	readFile.Close()
-	fmt.Printf("Total square feet and ribbon: %d, %d\n",
-		totalSquareFeet, totalRibbon)
+	safeReports := processReports(string(byteArray))
+	fmt.Printf("Part 1: %d\n", safeReports)
 }
