@@ -1,9 +1,7 @@
 package main
 
-import (
-	"serveba/adventofcode/aoc2015"
-)
+import "serveba/adventofcode/aoc2024"
 
 func main() {
-	aoc2015.Day2()
+	aoc2024.Day2()
 }
